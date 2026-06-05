@@ -1,0 +1,39 @@
+{
+  "name": "privatemarketsapi",
+  "version": "1.0.0",
+  "description": "Titanbay Private Markets API",
+  "homepage": "https://github.com/PhysCamy/PrivateMarketsApi#readme",
+  "bugs": {
+    "url": "https://github.com/PhysCamy/PrivateMarketsApi/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PhysCamy/PrivateMarketsApi.git"
+  },
+  "license": "ISC",
+  "author": "Cameron Matchett",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "migrate": "drizzle-kit push:pg",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fastify/swagger": "^8.15.0",
+    "@fastify/swagger-ui": "^2.1.0",
+    "dotenv": "^16",
+    "drizzle-orm": "^0.30",
+    "fastify": "^4",
+    "fastify-plugin": "^4",
+    "fastify-type-provider-zod": "^1",
+    "pg": "^8",
+    "zod": "^3"
+  },
+  "devDependencies": {
+    "@types/pg": "^8",
+    "drizzle-kit": "^0.20",
+    "tsx": "^4",
+    "typescript": "^5"
+  }
+}
