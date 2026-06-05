@@ -17,6 +17,10 @@ src/
     funds.ts
     investors.ts
     investments.ts
+  services/            # Business logic layer — routes delegate to services, services own DB access
+    FundService.ts
+    InvestorService.ts
+    InvestmentService.ts
   schemas/             # Zod schemas — separate request and response schemas per resource
     fund.ts            # FundCreateSchema, FundUpdateSchema, FundResponseSchema
     investor.ts        # InvestorCreateSchema, InvestorResponseSchema
@@ -81,6 +85,41 @@ drizzle.config.ts
 | fund_id | uuid | FK → funds.id |
 | amount_usd | numeric | NOT NULL |
 | investment_date | date | NOT NULL |
+
+---
+
+## Service Layer
+
+Routes are thin: they parse/validate input and serialise output. All business logic and database access lives in the service classes. Each service receives a Drizzle `db` instance via its constructor.
+
+### FundService
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `list` | `() => Promise<Fund[]>` | Return all funds ordered by `created_at` desc |
+| `getById` | `(id: string) => Promise<Fund>` | Return a single fund; throw 404 if not found |
+| `create` | `(data: FundCreate) => Promise<Fund>` | Insert and return the new fund |
+| `update` | `(data: FundUpdate) => Promise<Fund>` | Update fields by id; throw 404 if not found |
+
+### InvestorService
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `list` | `() => Promise<Investor[]>` | Return all investors ordered by `created_at` desc |
+| `create` | `(data: InvestorCreate) => Promise<Investor>` | Insert and return the new investor; throw 409 on duplicate email |
+
+### InvestmentService
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `listByFund` | `(fundId: string) => Promise<Investment[]>` | Return all investments for a fund; throw 404 if fund not found |
+| `create` | `(fundId: string, data: InvestmentCreate) => Promise<Investment>` | See validation logic below |
+
+**`create` validation sequence**
+1. Query `funds` by `fundId` — throw 404 (`Fund not found`) if absent
+2. Query `investors` by `data.investor_id` — throw 404 (`Investor not found`) if absent
+3. Query all existing investments for `fundId` and sum their `amount_usd`; if `existingTotal + data.amount_usd > fund.target_size_usd` throw 422 (`Investment would exceed fund target size`)
+4. Insert the investment and return the persisted record
 
 ---
 
@@ -168,6 +207,7 @@ drizzle.config.ts
 | Resource not found | 404 |
 | Validation failure (Zod) | 400 (handled automatically by `fastify-type-provider-zod`) |
 | Duplicate email (`POST /investors`) | 409 |
+| Investment would exceed fund target size | 422 |
 | Server error | 500 |
 
 ---
