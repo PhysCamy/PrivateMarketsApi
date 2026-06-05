@@ -15,7 +15,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "migrate": "drizzle-kit push:pg",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
