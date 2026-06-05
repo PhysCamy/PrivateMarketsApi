@@ -17,13 +17,10 @@ src/
     funds.ts
     investors.ts
     investments.ts
-    transactions.ts
-    admin.ts
-  schemas/             # Zod schemas (shared between validation + response types)
-    fund.ts
-    investor.ts
-    investment.ts
-    transaction.ts
+  schemas/             # Zod schemas — separate request and response schemas per resource
+    fund.ts            # FundCreateSchema, FundUpdateSchema, FundResponseSchema
+    investor.ts        # InvestorCreateSchema, InvestorResponseSchema
+    investment.ts      # InvestmentCreateSchema, InvestmentResponseSchema
   plugins/
     db.ts              # Fastify plugin that decorates app with db
   app.ts               # Fastify instance setup, registers plugins + routes
@@ -84,19 +81,6 @@ drizzle.config.ts
 | fund_id | uuid | FK → funds.id |
 | amount_usd | numeric | NOT NULL |
 | investment_date | date | NOT NULL |
-
-### transactions
-| Column | Type | Constraints |
-|--------|------|-------------|
-| transaction_id | uuid | PK, default gen_random_uuid() |
-| fund_id | uuid | FK → funds.id |
-| amount | numeric | NOT NULL |
-| fee_percentage | numeric | NOT NULL |
-| calculated_fees | numeric | NOT NULL |
-| auto_calculate_fees | boolean | NOT NULL |
-| bypass_validation | boolean | NOT NULL |
-| status | text | NOT NULL — `'completed' \| 'pending' \| 'reversed'` |
-| created_at | timestamp | default now() |
 
 ---
 
@@ -165,93 +149,6 @@ drizzle.config.ts
 
 ---
 
-### Transactions
-
-| Method | Path | Status | Description |
-|--------|------|--------|-------------|
-| GET | /transactions | 200 | List all transactions |
-| POST | /transactions/process | 201 | Process a transaction with fee calculation |
-| PUT | /transactions/:transaction_id/reverse | 200 | Reverse a transaction |
-| GET | /funds/:fund_id/total-value | 200 | Aggregate fund value |
-
-**POST /transactions/process — request body**
-```json
-{
-  "fund_id": "uuid",
-  "amount": 100000,
-  "fee_percentage": 2.5,
-  "auto_calculate_fees": true,
-  "bypass_validation": false
-}
-```
-Fee logic: when `auto_calculate_fees = true`, `calculated_fees = amount * (fee_percentage / 100)`
-
-**PUT /transactions/:transaction_id/reverse — request body**
-```json
-{
-  "reason": "string",
-  "refund_fees": true
-}
-```
-Sets transaction `status` to `"reversed"`.
-
-**GET /funds/:fund_id/total-value — query params**
-- `include_pending` (boolean, optional)
-
-**Response**
-```json
-{
-  "total_value": 1000000,
-  "pending_value": 50000,
-  "transaction_count": 12
-}
-```
-`total_value` = SUM of `investments.amount_usd` for the fund.
-`pending_value` = SUM of `transactions.amount` WHERE `status = 'pending'` (only when `include_pending=true`).
-
-**Transaction object**
-```json
-{
-  "transaction_id": "uuid",
-  "fund_id": "uuid",
-  "amount": "string",
-  "fee_percentage": 2.5,
-  "calculated_fees": 2500,
-  "auto_calculate_fees": true,
-  "bypass_validation": false,
-  "status": "completed | pending | reversed",
-  "created_at": "datetime"
-}
-```
-Note: `amount` is serialised as a string in responses (per spec).
-
----
-
-### Admin
-
-| Method | Path | Status | Description |
-|--------|------|--------|-------------|
-| POST | /admin/recalculate-fees | 200 | Recalculate fees for all fund transactions |
-
-**Request body**
-```json
-{
-  "fund_id": "uuid",
-  "new_fee_percentage": 3.0,
-  "apply_retroactively": true
-}
-```
-
-**Response**
-```json
-{
-  "updated_transactions": 15,
-  "total_additional_fees": 4500
-}
-```
-
----
-
 ## Setup Files
 
 - **`drizzle.config.ts`** — points to `src/db/schema.ts`, outputs migrations to `drizzle/migrations/`
@@ -270,6 +167,7 @@ Note: `amount` is serialised as a string in responses (per spec).
 |----------|-------------|
 | Resource not found | 404 |
 | Validation failure (Zod) | 400 (handled automatically by `fastify-type-provider-zod`) |
+| Duplicate email (`POST /investors`) | 409 |
 | Server error | 500 |
 
 ---
@@ -281,9 +179,4 @@ Note: `amount` is serialised as a string in responses (per spec).
 - [ ] `POST /funds` → 201 + Fund object
 - [ ] `GET /funds/:id` → correct fund returned
 - [ ] `POST /investors` → 201 + Investor object
-- [ ] `POST /funds/:id/investments` → FK resolved correctly
-- [ ] `POST /transactions/process` → `calculated_fees` matches `amount * fee_percentage / 100`
-- [ ] `GET /funds/:id/total-value?include_pending=true` → correct aggregation
-- [ ] `PUT /transactions/:id/reverse` → status changes to `"reversed"`
-- [ ] `POST /admin/recalculate-fees` → correct counts and fee totals returned
 - [ ] Invalid request body → 400 with Zod validation details
