@@ -18,7 +18,14 @@ function toResponse(row: InvestorRow): InvestorResponse {
 const UNIQUE_VIOLATION = '23505';
 
 function isUniqueViolation(error: unknown): boolean {
-  return typeof error === 'object' && error !== null && 'code' in error && error.code === UNIQUE_VIOLATION;
+  // Drizzle wraps the driver error in a `DrizzleQueryError`, so the pg error
+  // carrying `code` may sit further down the `cause` chain.
+  for (let cause: unknown = error; cause != null; cause = (cause as { cause?: unknown }).cause) {
+    if (typeof cause === 'object' && 'code' in cause && cause.code === UNIQUE_VIOLATION) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /**

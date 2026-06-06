@@ -20,7 +20,9 @@
     "build": "tsc -p tsconfig.build.json",
     "migrate": "drizzle-kit push",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "seed": "tsx tests/integration/seed.ts",
+    "test": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts"
   },
   "dependencies": {
     "@fastify/swagger": "^9.7.0",
