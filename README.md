@@ -30,10 +30,13 @@ From a fresh clone, three commands get the server running:
 ```bash
 npm install     # 1. Install dependencies
 npm run setup   # 2. Create the database and apply the schema
-npm run dev     # 3. Start the dev server
+npm run seed    # 3. (Optional) Load example funds, investors, and investments
+npm run dev     # 4. Start the dev server
 ```
 
 `npm run setup` creates a `.env` from `.env.example` if you don't have one, then connects to Postgres using `DATABASE_URL` and creates the role and database if they don't exist before applying the schema. With the default `.env.example` it works out of the box on a local Postgres. It's safe to re-run.
+
+`npm run seed` is optional — it resets the tables and loads a small set of example funds, investors, and investments so you have data to explore the endpoints with straight away. It's safe to re-run and starts from a clean slate each time. Skip it if you'd rather start with an empty database.
 
 The server listens on **http://localhost:3000** by default, with interactive Swagger UI docs at **http://localhost:3000/docs**.
 
@@ -82,6 +85,16 @@ npm run migrate
 
 > On Linux, run the `createdb`/`psql` commands through the `postgres` superuser (`sudo -u postgres …`); on Windows, run them from the bundled **SQL Shell (psql)**.
 
+### Seeding example data (optional)
+
+Once the schema is in place, you can load a small set of example fixtures — three funds (one `Fundraising`, one `Investing`, one `Closed`), two investors, and an investment — to explore the API with:
+
+```bash
+npm run seed
+```
+
+This truncates the tables and reinserts the canonical fixtures, so it always starts from a clean slate and is safe to re-run. The same fixtures back the integration test suite.
+
 ---
 
 ## Scripts
@@ -89,6 +102,7 @@ npm run migrate
 | Script | Command | Description |
 |--------|---------|-------------|
 | `npm run setup` | `node scripts/setup-db.mjs` | Create the database and apply the schema. |
+| `npm run seed` | `tsx tests/integration/seed.ts` | Reset the tables and load example fixtures. |
 | `npm run dev` | `tsx watch src/server.ts` | Start the server with hot reload. |
 | `npm run build` | `tsc` | Compile TypeScript to `dist/`. |
 | `npm run migrate` | `drizzle-kit push:pg` | Sync the Drizzle schema to the database. |
