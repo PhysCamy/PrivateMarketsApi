@@ -85,16 +85,6 @@ npm run migrate
 
 > On Linux, run the `createdb`/`psql` commands through the `postgres` superuser (`sudo -u postgres …`); on Windows, run them from the bundled **SQL Shell (psql)**.
 
-### Seeding example data (optional)
-
-Once the schema is in place, you can load a small set of example fixtures — three funds (one `Fundraising`, one `Investing`, one `Closed`), two investors, and an investment — to explore the API with:
-
-```bash
-npm run seed
-```
-
-This truncates the tables and reinserts the canonical fixtures, so it always starts from a clean slate and is safe to re-run. The same fixtures back the integration test suite.
-
 ---
 
 ## Scripts
