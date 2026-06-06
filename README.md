@@ -111,7 +111,7 @@ npm run migrate
 | `GET` | `/funds/:fund_id/investments` | List investments for a fund. |
 | `POST` | `/funds/:fund_id/investments` | Create an investment for a fund. |
 
-Request and response bodies are validated against Zod schemas, so malformed input returns `400` with field-level detail. See [`SPEC.md`](./SPEC.md) for full object shapes.
+Request and response bodies are validated against Zod schemas, so malformed input returns `400` with field-level detail.
 
 ### Interactive docs
 
