@@ -10,6 +10,8 @@ function toResponse(row: InvestmentRow): InvestmentResponse {
     id: row.id,
     investor_id: row.investorId,
     fund_id: row.fundId,
+    // Drizzle returns `numeric` columns as strings to preserve arbitrary precision;
+    // convert back to a number at the API boundary.
     amount_usd: Number(row.amountUsd),
     investment_date: row.investmentDate,
   };
@@ -57,6 +59,8 @@ export class InvestmentService {
     const existing = await this.db.query.investments.findMany({
       where: (i, { eq }) => eq(i.fundId, fundId),
     });
+    // `amountUsd`/`targetSizeUsd` come back from Drizzle as strings (numeric
+    // columns); convert to numbers for summing and comparison.
     const existingTotal = existing.reduce((sum, i) => sum + Number(i.amountUsd), 0);
     if (existingTotal + data.amount_usd > Number(fund.targetSizeUsd)) {
       throw new HttpError(422, 'Investment would exceed fund target size');
@@ -67,6 +71,8 @@ export class InvestmentService {
       .values({
         fundId,
         investorId: data.investor_id,
+        // Drizzle represents `numeric` columns as strings in TS to preserve
+        // arbitrary precision; stringify at the DB boundary.
         amountUsd: String(data.amount_usd),
         investmentDate: data.investment_date,
       })

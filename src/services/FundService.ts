@@ -11,6 +11,8 @@ function toResponse(row: FundRow): FundResponse {
     id: row.id,
     name: row.name,
     vintage_year: row.vintageYear,
+    // Drizzle returns `numeric` columns as strings to preserve arbitrary precision;
+    // convert back to a number at the API boundary.
     target_size_usd: Number(row.targetSizeUsd),
     status: row.status as FundResponse['status'],
     created_at: row.createdAt!.toISOString(),
@@ -48,6 +50,8 @@ export class FundService {
       .values({
         name: data.name,
         vintageYear: data.vintage_year,
+        // Drizzle represents `numeric` columns as strings in TS to preserve
+        // arbitrary precision; stringify at the DB boundary.
         targetSizeUsd: String(data.target_size_usd),
         status: data.status,
       })
@@ -69,6 +73,8 @@ export class FundService {
       throw new HttpError(422, 'Closed funds cannot be updated');
     }
 
+    // `targetSizeUsd`/`amountUsd` come back from Drizzle as strings (numeric
+    // columns); convert to numbers for comparison and summing.
     if (data.target_size_usd < Number(current.targetSizeUsd)) {
       const existing = await this.db.query.investments.findMany({
         where: (i, { eq }) => eq(i.fundId, data.id),
@@ -84,6 +90,8 @@ export class FundService {
       .set({
         name: data.name,
         vintageYear: data.vintage_year,
+        // Drizzle represents `numeric` columns as strings in TS to preserve
+        // arbitrary precision; stringify at the DB boundary.
         targetSizeUsd: String(data.target_size_usd),
         status: data.status,
       })
