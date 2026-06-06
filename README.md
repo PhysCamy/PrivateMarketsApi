@@ -1,4 +1,4 @@
-# Titanbay Private Markets API
+# Private Markets API
 
 A REST API for managing private-market funds, investors, and investments.
 
