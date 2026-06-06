@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { z } from 'zod';
-import { InvestorCreateSchema } from '../../src/schemas/investor';
+import { InvestorCreateSchema } from '../../../src/schemas/investor';
 
 const validInvestor = {
   name: 'Jane Doe',

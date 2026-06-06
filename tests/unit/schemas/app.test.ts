@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import type { FastifyInstance } from 'fastify';
-import { buildApp } from '../../src/app';
+import { buildApp } from '../../../src/app';
 
 describe('request validation error handling', () => {
   let app: FastifyInstance;
 
   beforeAll(async () => {
-    app = buildApp();
+    app = buildApp({ logger: false });
     await app.ready();
   });
 
