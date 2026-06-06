@@ -85,6 +85,8 @@ npm run migrate
 
 > On Linux, run the `createdb`/`psql` commands through the `postgres` superuser (`sudo -u postgres …`); on Windows, run them from the bundled **SQL Shell (psql)**.
 
+To start over from scratch, `npm run teardown` does the reverse of `setup`: it terminates any open connections and drops the database named in `DATABASE_URL` entirely. It's a no-op if the database doesn't exist, so it's safe to run anytime. Re-run `npm run setup` afterwards to recreate it.
+
 ---
 
 ## Scripts
@@ -92,6 +94,7 @@ npm run migrate
 | Script | Command | Description |
 |--------|---------|-------------|
 | `npm run setup` | `node scripts/setup-db.mjs` | Create the database and apply the schema. |
+| `npm run teardown` | `node scripts/teardown-db.mjs` | Drop the database entirely. |
 | `npm run seed` | `tsx tests/integration/seed.ts` | Reset the tables and load example fixtures. |
 | `npm run dev` | `tsx watch src/server.ts` | Start the server with hot reload. |
 | `npm run build` | `tsc` | Compile TypeScript to `dist/`. |
