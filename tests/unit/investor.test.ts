@@ -48,4 +48,8 @@ describe('InvestorCreateSchema', () => {
       'A valid email address is required',
     );
   });
+
+  it('rejects unknown keys rather than stripping them', () => {
+    expect(InvestorCreateSchema.safeParse({ ...validInvestor, surprise: true }).success).toBe(false);
+  });
 });

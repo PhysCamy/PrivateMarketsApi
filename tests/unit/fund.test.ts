@@ -64,6 +64,10 @@ describe('FundCreateSchema', () => {
       'Status must be one of: Fundraising, Investing, Closed',
     );
   });
+
+  it('rejects unknown keys rather than stripping them', () => {
+    expect(FundCreateSchema.safeParse({ ...validFund, surprise: true }).success).toBe(false);
+  });
 });
 
 describe('FundUpdateSchema', () => {
@@ -87,5 +91,11 @@ describe('FundUpdateSchema', () => {
     expect(messagesFor(FundUpdateSchema, { ...validUpdate, id: 'not-a-uuid' })).toContain(
       'Fund id must be a valid UUID',
     );
+  });
+
+  it('rejects an attempt to update the created date', () => {
+    expect(
+      FundUpdateSchema.safeParse({ ...validUpdate, created_at: '2020-01-01' }).success,
+    ).toBe(false);
   });
 });

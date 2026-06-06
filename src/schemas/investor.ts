@@ -6,14 +6,16 @@ export const investorType = z.enum(['Individual', 'Institution', 'Family Office'
   }),
 });
 
-export const InvestorCreateSchema = z.object({
-  name: z
-    .string()
-    .min(1, 'Investor name is required')
-    .max(100, 'Investor name must be 100 characters or fewer'),
-  investor_type: investorType,
-  email: z.string().email('A valid email address is required'),
-});
+export const InvestorCreateSchema = z
+  .object({
+    name: z
+      .string()
+      .min(1, 'Investor name is required')
+      .max(100, 'Investor name must be 100 characters or fewer'),
+    investor_type: investorType,
+    email: z.string().email('A valid email address is required'),
+  })
+  .strict();
 
 export const InvestorResponseSchema = z.object({
   id: z.string().uuid(),

@@ -54,4 +54,10 @@ describe('InvestmentCreateSchema', () => {
       messagesFor(InvestmentCreateSchema, { ...validInvestment, investor_id: 'nope' }),
     ).toContain('Investor id must be a valid UUID');
   });
+
+  it('rejects unknown keys rather than stripping them', () => {
+    expect(
+      InvestmentCreateSchema.safeParse({ ...validInvestment, surprise: true }).success,
+    ).toBe(false);
+  });
 });

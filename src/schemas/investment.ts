@@ -1,17 +1,19 @@
 import { z } from 'zod';
 
-export const InvestmentCreateSchema = z.object({
-  investor_id: z.string().uuid('Investor id must be a valid UUID'),
-  amount_usd: z.number().positive('Investment amount must be a positive amount'),
-  investment_date: z
-    .string()
-    .refine((val) => !Number.isNaN(Date.parse(val)), {
-      message: 'Investment date must be a valid date',
-    })
-    .refine((val) => val <= new Date().toISOString().split('T')[0], {
-      message: 'Investment date cannot be in the future',
-    }),
-});
+export const InvestmentCreateSchema = z
+  .object({
+    investor_id: z.string().uuid('Investor id must be a valid UUID'),
+    amount_usd: z.number().positive('Investment amount must be a positive amount'),
+    investment_date: z
+      .string()
+      .refine((val) => !Number.isNaN(Date.parse(val)), {
+        message: 'Investment date must be a valid date',
+      })
+      .refine((val) => val <= new Date().toISOString().split('T')[0], {
+        message: 'Investment date cannot be in the future',
+      }),
+  })
+  .strict();
 
 export const InvestmentResponseSchema = z.object({
   id: z.string().uuid(),
