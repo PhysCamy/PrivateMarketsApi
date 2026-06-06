@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { Database } from '../db/index';
-import { InvestmentService } from './InvestmentService';
+import type { Database } from '../../src/db/index';
+import { InvestmentService } from '../../src/services/InvestmentService';
 import { makeFakeDb, type FakeDb } from './testDb';
 
 const fundId = '11111111-1111-1111-1111-111111111111';
