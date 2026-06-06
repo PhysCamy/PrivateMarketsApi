@@ -36,8 +36,8 @@ export function buildApp() {
   app.register(swagger, {
     openapi: {
       info: {
-        title: 'Titanbay Private Markets API',
-        description: 'REST API implementing the Titanbay Private Markets spec.',
+        title: 'Private Markets API',
+        description: 'REST API implementing basic functionality around Private Markets investments.',
         version: '1.0.0',
       },
     },
