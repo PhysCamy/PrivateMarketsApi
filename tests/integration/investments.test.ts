@@ -9,7 +9,7 @@ describe('Investments API (integration)', () => {
   let app: FastifyInstance;
 
   beforeAll(async () => {
-    app = buildApp();
+    app = buildApp({ logger: false });
     await app.ready();
   });
 

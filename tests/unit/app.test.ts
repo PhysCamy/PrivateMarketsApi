@@ -6,7 +6,7 @@ describe('request validation error handling', () => {
   let app: FastifyInstance;
 
   beforeAll(async () => {
-    app = buildApp();
+    app = buildApp({ logger: false });
     await app.ready();
   });
 

@@ -1,4 +1,4 @@
-import Fastify from 'fastify';
+import Fastify, { type FastifyServerOptions } from 'fastify';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import {
@@ -12,8 +12,8 @@ import { fundRoutes } from './routes/funds';
 import { investorRoutes } from './routes/investors';
 import { investmentRoutes } from './routes/investments';
 
-export function buildApp() {
-  const app = Fastify({ logger: true });
+export function buildApp(opts: FastifyServerOptions = { logger: true }) {
+  const app = Fastify(opts);
 
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
