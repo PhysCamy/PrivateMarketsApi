@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { Database } from '../../src/db/index';
-import { FundService } from '../../src/services/FundService';
+import type { Database } from '../../../src/db/index';
+import { FundService } from '../../../src/services/FundService';
 import { makeFakeDb, type FakeDb } from './testDb';
 
 const fundRow = {
@@ -120,5 +120,46 @@ describe('FundService', () => {
     });
 
     expect(result.target_size_usd).toBe(900000);
+  });
+
+  it('allows reducing target size to exactly the committed total', async () => {
+    fake.db.query.funds.findFirst.mockResolvedValue(fundRow);
+    fake.db.query.investments.findMany.mockResolvedValue([
+      { amountUsd: '500000' },
+      { amountUsd: '300000' },
+    ]);
+    fake.updateReturning.mockResolvedValue([{ ...fundRow, targetSizeUsd: '800000' }]);
+
+    const result = await service.update({
+      id: fundRow.id,
+      name: 'Alpha Fund',
+      vintage_year: 2024,
+      target_size_usd: 800000,
+      status: 'Fundraising',
+    });
+
+    expect(result.target_size_usd).toBe(800000);
+  });
+
+  it('does not consult committed investments when raising the target size', async () => {
+    fake.db.query.funds.findFirst.mockResolvedValue(fundRow);
+    fake.updateReturning.mockResolvedValue([{ ...fundRow, targetSizeUsd: '2000000' }]);
+
+    const result = await service.update({
+      id: fundRow.id,
+      name: 'Alpha Fund',
+      vintage_year: 2024,
+      target_size_usd: 2000000,
+      status: 'Fundraising',
+    });
+
+    expect(result.target_size_usd).toBe(2000000);
+    expect(fake.db.query.investments.findMany).not.toHaveBeenCalled();
+  });
+
+  it('returns an empty list when there are no funds', async () => {
+    fake.db.query.funds.findMany.mockResolvedValue([]);
+
+    expect(await service.list()).toEqual([]);
   });
 });

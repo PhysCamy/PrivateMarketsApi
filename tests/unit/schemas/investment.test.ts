@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { z } from 'zod';
-import { InvestmentCreateSchema } from '../../src/schemas/investment';
+import { InvestmentCreateSchema } from '../../../src/schemas/investment';
 
 const today = new Date().toISOString().split('T')[0];
 

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { Database } from '../../src/db/index';
-import { InvestorService } from '../../src/services/InvestorService';
+import type { Database } from '../../../src/db/index';
+import { InvestorService } from '../../../src/services/InvestorService';
 import { makeFakeDb, type FakeDb } from './testDb';
 
 const investorRow = {
@@ -56,6 +56,23 @@ describe('InvestorService', () => {
     ).rejects.toMatchObject({ statusCode: 409 });
   });
 
+  it('throws 409 when the unique violation is nested in the cause chain', async () => {
+    fake.insertReturning.mockRejectedValue({ cause: { cause: { code: '23505' } } });
+
+    await expect(
+      service.create({ name: 'Alice', investor_type: 'Individual', email: 'alice@example.com' }),
+    ).rejects.toMatchObject({ statusCode: 409 });
+  });
+
+  it('rethrows database errors carrying a non-unique-violation code', async () => {
+    const notNull = { code: '23502' };
+    fake.insertReturning.mockRejectedValue(notNull);
+
+    await expect(
+      service.create({ name: 'Alice', investor_type: 'Individual', email: 'alice@example.com' }),
+    ).rejects.toBe(notNull);
+  });
+
   it('rethrows unexpected database errors', async () => {
     const boom = new Error('connection lost');
     fake.insertReturning.mockRejectedValue(boom);
@@ -63,5 +80,11 @@ describe('InvestorService', () => {
     await expect(
       service.create({ name: 'Alice', investor_type: 'Individual', email: 'alice@example.com' }),
     ).rejects.toBe(boom);
+  });
+
+  it('returns an empty list when there are no investors', async () => {
+    fake.db.query.investors.findMany.mockResolvedValue([]);
+
+    expect(await service.list()).toEqual([]);
   });
 });

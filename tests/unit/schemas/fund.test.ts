@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { z } from 'zod';
-import { FundCreateSchema, FundUpdateSchema } from '../../src/schemas/fund';
+import { FundCreateSchema, FundUpdateSchema } from '../../../src/schemas/fund';
 
 const validFund = {
   name: 'Growth Fund I',

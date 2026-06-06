@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { Database } from '../../src/db/index';
-import { InvestmentService } from '../../src/services/InvestmentService';
+import type { Database } from '../../../src/db/index';
+import { InvestmentService } from '../../../src/services/InvestmentService';
 import { makeFakeDb, type FakeDb } from './testDb';
 
 const fundId = '11111111-1111-1111-1111-111111111111';
@@ -90,6 +90,17 @@ describe('InvestmentService', () => {
     ).rejects.toMatchObject({ statusCode: 422 });
   });
 
+  it('records an investment that brings the total exactly to the target size', async () => {
+    fake.db.query.funds.findFirst.mockResolvedValue(fundRow);
+    fake.db.query.investors.findFirst.mockResolvedValue({ id: investorId });
+    fake.db.query.investments.findMany.mockResolvedValue([{ amountUsd: '400000' }]);
+    fake.insertReturning.mockResolvedValue([investmentRow]);
+
+    const result = await service.create(fundId, { ...validInput, amount_usd: 600000 });
+
+    expect(result.amount_usd).toBe(600000);
+  });
+
   it('records an investment when all checks pass', async () => {
     fake.db.query.funds.findFirst.mockResolvedValue(fundRow);
     fake.db.query.investors.findFirst.mockResolvedValue({ id: investorId });
@@ -100,5 +111,12 @@ describe('InvestmentService', () => {
 
     expect(result.amount_usd).toBe(600000);
     expect(result.fund_id).toBe(fundId);
+  });
+
+  it('returns an empty list when a fund has no investments', async () => {
+    fake.db.query.funds.findFirst.mockResolvedValue(fundRow);
+    fake.db.query.investments.findMany.mockResolvedValue([]);
+
+    expect(await service.listByFund(fundId)).toEqual([]);
   });
 });
