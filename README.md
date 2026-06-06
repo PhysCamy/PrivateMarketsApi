@@ -25,7 +25,7 @@ psql --version
 
 ## Quick start
 
-From a fresh clone, three commands get the server running:
+From a fresh clone, three commands get the server running (assuming local Postgres is already running):
 
 ```bash
 npm install     # 1. Install dependencies
