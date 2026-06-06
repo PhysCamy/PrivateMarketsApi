@@ -2,13 +2,11 @@ import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { InvestmentCreateSchema, InvestmentResponseSchema } from '../schemas/investment';
-
-const notImplemented = async () => {
-  throw Object.assign(new Error('Not implemented'), { statusCode: 501 });
-};
+import { InvestmentService } from '../services/InvestmentService';
 
 export async function investmentRoutes(app: FastifyInstance) {
   const r = app.withTypeProvider<ZodTypeProvider>();
+  const service = new InvestmentService(app.db);
 
   r.get(
     '/funds/:fund_id/investments',
@@ -20,7 +18,7 @@ export async function investmentRoutes(app: FastifyInstance) {
         response: { 200: z.array(InvestmentResponseSchema) },
       },
     },
-    notImplemented,
+    (req) => service.listByFund(req.params.fund_id),
   );
 
   r.post(
@@ -34,6 +32,9 @@ export async function investmentRoutes(app: FastifyInstance) {
         response: { 201: InvestmentResponseSchema },
       },
     },
-    notImplemented,
+    async (req, reply) => {
+      const investment = await service.create(req.params.fund_id, req.body);
+      return reply.code(201).send(investment);
+    },
   );
 }

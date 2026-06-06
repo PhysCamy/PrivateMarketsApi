@@ -2,11 +2,11 @@ import Fastify from 'fastify';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import {
+  hasZodFastifySchemaValidationErrors,
   jsonSchemaTransform,
   serializerCompiler,
   validatorCompiler,
 } from 'fastify-type-provider-zod';
-import { ZodError } from 'zod';
 import dbPlugin from './plugins/db';
 import { fundRoutes } from './routes/funds';
 import { investorRoutes } from './routes/investors';
@@ -19,12 +19,12 @@ export function buildApp() {
   app.setSerializerCompiler(serializerCompiler);
 
   app.setErrorHandler((err, _req, reply) => {
-    if (err instanceof ZodError) {
+    if (hasZodFastifySchemaValidationErrors(err)) {
       return reply.status(400).send({
         statusCode: 400,
         error: 'Bad Request',
         message: 'Request validation failed',
-        issues: err.issues.map((issue) => ({
+        issues: err.validation.map(({ params: { issue } }) => ({
           field: issue.path.join('.'),
           message: issue.message,
         })),
@@ -36,8 +36,8 @@ export function buildApp() {
   app.register(swagger, {
     openapi: {
       info: {
-        title: 'Titanbay Private Markets API',
-        description: 'REST API implementing the Titanbay Private Markets spec.',
+        title: 'Private Markets API',
+        description: 'REST API implementing basic functionality around Private Markets investments.',
         version: '1.0.0',
       },
     },

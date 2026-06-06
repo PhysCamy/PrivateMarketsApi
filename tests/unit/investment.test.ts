@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { z } from 'zod';
-import { InvestmentCreateSchema } from './investment';
+import { InvestmentCreateSchema } from '../../src/schemas/investment';
 
 const today = new Date().toISOString().split('T')[0];
 
@@ -53,5 +53,11 @@ describe('InvestmentCreateSchema', () => {
     expect(
       messagesFor(InvestmentCreateSchema, { ...validInvestment, investor_id: 'nope' }),
     ).toContain('Investor id must be a valid UUID');
+  });
+
+  it('rejects unknown keys rather than stripping them', () => {
+    expect(
+      InvestmentCreateSchema.safeParse({ ...validInvestment, surprise: true }).success,
+    ).toBe(false);
   });
 });

@@ -27,53 +27,19 @@ psql --version
 
 ## Quick start
 
-From a fresh clone, these six steps get the server running:
-
-> **Tested on macOS only.** The npm scripts (`install`, `migrate`, `dev`, `typecheck`) run through Node and behave identically on every platform, but the shell command in step 2 and the PostgreSQL commands in steps 4–5 differ on Windows and Linux. See [Platform notes](#platform-notes) for untested equivalents.
+From a fresh clone, three commands get the server running:
 
 ```bash
-# 1. Install dependencies
-npm install
-
-# 2. Create your environment file
-cp .env.example .env
-
-# 3. Edit .env so DATABASE_URL points at your Postgres (see below)
-
-# 4. Create the database
-createdb private_markets
-
-# 5. Apply the schema
-npm run migrate
-
-# 6. Start the dev server
-npm run dev
+npm install     # 1. Install dependencies
+npm run setup   # 2. Create the database and apply the schema
+npm run dev     # 3. Start the dev server
 ```
+
+`npm run setup` creates a `.env` from `.env.example` if you don't have one, then connects to Postgres using `DATABASE_URL` and creates the role and database if they don't exist before applying the schema. With the default `.env.example` it works out of the box on a local Postgres. It's safe to re-run.
 
 The server listens on **http://localhost:3000** by default, with interactive Swagger UI docs at **http://localhost:3000/docs**.
 
-### Platform notes
-
-> The steps above were verified on **macOS** only. The equivalents below are provided for convenience but have **not been tested** on Windows or Linux.
-
-**Step 2 — copying the env file.** `cp` works on macOS, Linux, and Windows PowerShell. In the legacy Windows Command Prompt (`cmd.exe`), use `copy` instead:
-
-```cmd
-copy .env.example .env
-```
-
-**Steps 4–5 — `createdb` / `psql` on your PATH.** Both ship with PostgreSQL but must be reachable on your `PATH`:
-
-- **macOS / Linux** — usually on `PATH` already (Homebrew, apt, etc.).
-- **Windows** — the official installer does not always add PostgreSQL's `bin\` directory to `PATH`. Either add it manually, or run the commands from the bundled **SQL Shell (psql)** shortcut.
-
-**Linux — creating the database and role.** Many Linux installs use *peer authentication* for the `postgres` superuser, so run the setup through it:
-
-```bash
-sudo -u postgres createdb private_markets
-sudo -u postgres psql -c "CREATE ROLE \"user\" WITH LOGIN PASSWORD 'password';"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE private_markets TO \"user\";"
-```
+> Make sure Postgres is running first.
 
 ---
 
@@ -92,7 +58,7 @@ Configuration is read from `.env` (loaded automatically via `dotenv`).
 DATABASE_URL=postgres://user:password@localhost:5432/private_markets
 ```
 
-Edit it to match your local Postgres. The format is:
+This works as-is against a local Postgres — `npm run setup` creates the role and database for you. Change it to point at a different Postgres if you need to. The format is:
 
 ```
 postgres://<role>:<password>@<host>:<port>/<database>
@@ -104,26 +70,19 @@ postgres://<role>:<password>@<host>:<port>/<database>
 
 ## Database setup
 
-The connection string above assumes a role named `user` with password `password`. Either edit `DATABASE_URL` to match an existing role, or create one to match it:
+`npm run setup` handles this for you: it reads `DATABASE_URL`, creates the role and database if they're missing, and applies the schema. If the role in your connection string doesn't exist, setup creates it by connecting as your local Postgres superuser (your OS user, or `PGUSER`). If that bootstrap connection can't be made, setup prints the `CREATE ROLE` command to run by hand.
+
+The schema is applied with [`drizzle-kit push:pg`](https://orm.drizzle.team/kit-docs/overview), which syncs the tables defined in `src/db/schema.ts` directly to your database — no migration files needed for local development. To re-apply the schema on its own after changing it, run `npm run migrate`.
+
+If you'd rather set things up by hand, create the role and database directly, then apply the schema:
 
 ```bash
-# Create the database
-createdb private_markets
-
-# (Optional) create a matching role if you don't already have one
-psql -d postgres -c "CREATE ROLE \"user\" WITH LOGIN PASSWORD 'password';"
-psql -d postgres -c "GRANT ALL PRIVILEGES ON DATABASE private_markets TO \"user\";"
-```
-
-> These commands are verified on macOS. On Linux, run them through the `postgres` superuser (`sudo -u postgres …`); on Windows, run them from the **SQL Shell (psql)**. See [Platform notes](#platform-notes).
-
-Then push the schema:
-
-```bash
+psql -d postgres -c "CREATE ROLE \"user\" WITH LOGIN PASSWORD 'password' CREATEDB;"
+createdb -O user private_markets
 npm run migrate
 ```
 
-This uses [`drizzle-kit push:pg`](https://orm.drizzle.team/kit-docs/overview) to sync the tables defined in `src/db/schema.ts` directly to your database — no migration files needed for local development.
+> On Linux, run the `createdb`/`psql` commands through the `postgres` superuser (`sudo -u postgres …`); on Windows, run them from the bundled **SQL Shell (psql)**.
 
 ---
 
@@ -131,6 +90,7 @@ This uses [`drizzle-kit push:pg`](https://orm.drizzle.team/kit-docs/overview) to
 
 | Script | Command | Description |
 |--------|---------|-------------|
+| `npm run setup` | `node scripts/setup-db.mjs` | Create the database and apply the schema. |
 | `npm run dev` | `tsx watch src/server.ts` | Start the server with hot reload. |
 | `npm run build` | `tsc` | Compile TypeScript to `dist/`. |
 | `npm run migrate` | `drizzle-kit push:pg` | Sync the Drizzle schema to the database. |
@@ -165,31 +125,6 @@ curl -i http://localhost:3000/funds
 
 curl -i http://localhost:3000/funds/not-a-uuid
 # → 400 Bad Request       (Zod rejects the invalid uuid)
-```
-
----
-
-## Project structure
-
-```
-src/
-  db/
-    schema.ts        # Drizzle table definitions (funds, investors, investments)
-    index.ts         # pg Pool + Drizzle connection
-  routes/
-    funds.ts         # /funds endpoints
-    investors.ts     # /investors endpoints
-    investments.ts   # /funds/:fund_id/investments endpoints
-  schemas/           # Zod schemas — separate request and response per resource
-    fund.ts
-    investor.ts
-    investment.ts
-  plugins/
-    db.ts            # Fastify plugin decorating the app with `db`
-  app.ts             # Builds the Fastify instance, registers plugins + routes
-  server.ts          # Entry point (listen)
-drizzle.config.ts    # Drizzle Kit config (schema path, migration output, credentials)
-.env                 # Local environment (git-ignored)
 ```
 
 ---

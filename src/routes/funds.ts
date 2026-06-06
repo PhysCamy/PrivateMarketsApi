@@ -2,13 +2,11 @@ import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { FundCreateSchema, FundUpdateSchema, FundResponseSchema } from '../schemas/fund';
-
-const notImplemented = async () => {
-  throw Object.assign(new Error('Not implemented'), { statusCode: 501 });
-};
+import { FundService } from '../services/FundService';
 
 export async function fundRoutes(app: FastifyInstance) {
   const r = app.withTypeProvider<ZodTypeProvider>();
+  const service = new FundService(app.db);
 
   r.get(
     '/funds',
@@ -19,7 +17,7 @@ export async function fundRoutes(app: FastifyInstance) {
         response: { 200: z.array(FundResponseSchema) },
       },
     },
-    notImplemented,
+    () => service.list(),
   );
 
   r.post(
@@ -32,7 +30,10 @@ export async function fundRoutes(app: FastifyInstance) {
         response: { 201: FundResponseSchema },
       },
     },
-    notImplemented,
+    async (req, reply) => {
+      const fund = await service.create(req.body);
+      return reply.code(201).send(fund);
+    },
   );
 
   r.put(
@@ -45,7 +46,7 @@ export async function fundRoutes(app: FastifyInstance) {
         response: { 200: FundResponseSchema },
       },
     },
-    notImplemented,
+    (req) => service.update(req.body),
   );
 
   r.get(
@@ -58,6 +59,6 @@ export async function fundRoutes(app: FastifyInstance) {
         response: { 200: FundResponseSchema },
       },
     },
-    notImplemented,
+    (req) => service.getById(req.params.id),
   );
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { z } from 'zod';
-import { InvestorCreateSchema } from './investor';
+import { InvestorCreateSchema } from '../../src/schemas/investor';
 
 const validInvestor = {
   name: 'Jane Doe',
@@ -47,5 +47,9 @@ describe('InvestorCreateSchema', () => {
     expect(messagesFor(InvestorCreateSchema, { ...validInvestor, email: 'not-an-email' })).toContain(
       'A valid email address is required',
     );
+  });
+
+  it('rejects unknown keys rather than stripping them', () => {
+    expect(InvestorCreateSchema.safeParse({ ...validInvestor, surprise: true }).success).toBe(false);
   });
 });

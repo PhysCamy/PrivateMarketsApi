@@ -15,25 +15,27 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
-    "migrate": "drizzle-kit push:pg",
+    "setup": "node scripts/setup-db.mjs",
+    "teardown": "node scripts/teardown-db.mjs",
+    "build": "tsc -p tsconfig.build.json",
+    "migrate": "drizzle-kit push",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
-    "@fastify/swagger": "^8.15.0",
-    "@fastify/swagger-ui": "^2.1.0",
+    "@fastify/swagger": "^9.7.0",
+    "@fastify/swagger-ui": "^5.2.6",
     "dotenv": "^16",
-    "drizzle-orm": "^0.30",
-    "fastify": "^4",
-    "fastify-plugin": "^4",
-    "fastify-type-provider-zod": "^1",
+    "drizzle-orm": "^0.45.2",
+    "fastify": "^5.8.5",
+    "fastify-plugin": "^5.1.0",
+    "fastify-type-provider-zod": "^4.0.2",
     "pg": "^8",
     "zod": "^3"
   },
   "devDependencies": {
     "@types/pg": "^8",
-    "drizzle-kit": "^0.20",
+    "drizzle-kit": "^0.31.10",
     "tsx": "^4",
     "typescript": "^5",
     "vitest": "^4.1.8"
